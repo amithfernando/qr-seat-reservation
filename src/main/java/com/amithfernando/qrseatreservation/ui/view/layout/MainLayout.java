@@ -261,7 +261,7 @@ public class MainLayout extends AppLayout {
                 .set("font-size", "var(--lumo-font-size-s)")
                 .set("color", "var(--lumo-secondary-text-color)");
 
-        Anchor github = new Anchor("https://github.com/amithfdo/qr-seat-reservation", "GitHub Project");
+        Anchor github = new Anchor("https://github.com/amithfernando/qr-seat-reservation", "GitHub Project");
         github.setTarget("_blank");
         github.getElement().setAttribute("rel", "noopener");
         github.getStyle()

@@ -49,9 +49,3 @@ import './index';
 
 import './vaadin-react.js';
 import 'Frontend/generated/jar-resources/vaadin-dev-tools/vaadin-dev-tools.js';
-
-import { Outlet } from 'react-router';
-(window as any).Vaadin ??= {};
-(window as any).Vaadin.copilot ??= {};
-(window as any).Vaadin.copilot._ref ??= {};
-(window as any).Vaadin.copilot._ref.Outlet = Outlet;
