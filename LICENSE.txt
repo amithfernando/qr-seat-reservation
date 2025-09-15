@@ -1,0 +1,7 @@
+QR Seat Reservation
+
+This project includes open source components licensed under the Apache License, Version 2.0.
+
+Vaadin is a registered trademark of Vaadin Ltd. This project is not affiliated with Vaadin Ltd. Vaadin components used by this project are available under the Apache License 2.0 (unless otherwise noted by their respective packages).
+
+Copyright (c) 2025 Amith Fernando

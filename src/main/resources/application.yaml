@@ -1,0 +1,40 @@
+vaadin:
+  launch-browser: true
+
+spring:
+  application:
+    name: qr-seat-reservation
+  datasource:
+    url: jdbc:mysql://localhost:3306/qr-seat-reservation?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: user
+    password: password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+        hbm2ddl:
+          auto: update
+
+
+
+settings:
+  ticket:
+    prefix: "T"
+    noOfDigits: 6
+    maxNoOfTickets : 100
+  qrImage :
+    baseImagePath : "imgs/baseTicket.jpeg"
+    fontSize : 28
+    qrX : 950
+    qrY : 820
+    textX : 950
+    textY: 1120
+  seatingLayout:
+    tableSize : 100
+    seatSize : 20
+    noOfColumns : 5
