@@ -17,7 +17,7 @@ import java.util.List;
 @Tag("canvas")
 @Slf4j
 public class SeatCanvas extends Div {
-    private List<TableDetail> allTables;
+    private final List<TableDetail> allTables;
     private final int tableSize;
     private final int seatSize;
     private final int noOfColumns;
@@ -34,17 +34,6 @@ public class SeatCanvas extends Div {
     protected void onAttach(AttachEvent attachEvent) {
         super.onAttach(attachEvent);
         draw();
-
-        // Handle clicks
-        getElement().executeJs("""
-            const canvas = this;
-            canvas.addEventListener('click', function(evt) {
-                const rect = canvas.getBoundingClientRect();
-                const x = evt.clientX - rect.left;
-                const y = evt.clientY - rect.top;
-                this.$server.toggleSeatAt(x, y);
-            });
-        """);
     }
 
     public void draw() {
@@ -116,8 +105,8 @@ public class SeatCanvas extends Div {
             int s = 0;
             for (SeatDetail seatDetail : tablePosition.getTable().getSeatDetails()) {
                 double angle = 2 * Math.PI * s / seatCount;
-                int sx = (int) (cx + Math.cos(angle) * (tableSize/2 + 25));
-                int sy = (int) (cy + Math.sin(angle) * (tableSize/2 + 25));
+                int sx = (int) (cx + Math.cos(angle) * ((double) tableSize /2 + 25));
+                int sy = (int) (cy + Math.sin(angle) * ((double) tableSize /2 + 25));
 
                 log.info("seatId: {}, seat: {}", seatDetail.getId(), seatDetail);
                 String color = switch (seatDetail.getSeatStatus()) {
@@ -133,7 +122,21 @@ public class SeatCanvas extends Div {
                     ctx.arc(%d, %d, %d, 0, 2 * Math.PI);
                     ctx.fill();
                     ctx.stroke();
-                """, color, sx, sy, seatSize/2));
+
+                    // Seat number centered on the circle with outline for contrast
+                    ctx.font = '12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.lineWidth = 3;
+                    ctx.strokeStyle = 'white';
+                    ctx.strokeText('%s', %d, %d);
+                    ctx.fillStyle = 'black';
+                    ctx.fillText('%s', %d, %d);
+                """,
+                        color, sx, sy, seatSize/2,
+                        seatDetail.getSeatNo(), sx, sy,
+                        seatDetail.getSeatNo(), sx, sy
+                ));
 
                 s++;
             }
@@ -148,9 +151,9 @@ public class SeatCanvas extends Div {
 @Slf4j
 class PositionHelper {
 
-    private int noOfColumns;
-    private int tableSize;
-    private List<TableDetail> allTables;
+    private final int noOfColumns;
+    private final int tableSize;
+    private final List<TableDetail> allTables;
 
     public PositionHelper(int noOfColumns, int tableSize, List<TableDetail> allTables) {
         this.noOfColumns = noOfColumns;
@@ -173,7 +176,7 @@ class PositionHelper {
             tablePositions.add(tablePosition);
 
             if (currentColumn == noOfColumns) {
-                // reset column, move to next row
+                // reset column, move to the next row
                 currentColumn = 1;
                 currentRow++;
             } else {
