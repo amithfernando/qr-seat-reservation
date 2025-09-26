@@ -5,9 +5,9 @@ spring:
   application:
     name: qr-seat-reservation
   datasource:
-    url: jdbc:mysql://localhost:3306/qr-seat-reservation?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-    username: user
-    password: password
+    url: ${DB_URL:jdbc:mysql://localhost:3306/qr-seat-reservation?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
+    username: ${DB_USER:user}
+    password: ${DB_PWD:password}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
