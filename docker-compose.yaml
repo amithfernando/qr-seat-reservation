@@ -21,8 +21,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: amithfernando/qr-seat-reservation:latest
-    platform: linux/arm64  # Change to linux/amd64 for AMD systems
+    image: amithfernando/qr-seat-reservation:1.0.0
     environment:
       DB_URL: jdbc:mysql://db:3306/qr-seat-reservation?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
       DB_USER: user
