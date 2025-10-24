@@ -12,7 +12,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
@@ -30,10 +30,10 @@ settings:
   qrImage :
     baseImagePath : "imgs/baseTicket.jpeg"
     fontSize : 28
-    qrX : 950
-    qrY : 820
-    textX : 950
-    textY: 1120
+    qrX : 450
+    qrY : 20
+    textX : 450
+    textY: 320
   seatingLayout:
     tableSize : 100
     seatSize : 20
