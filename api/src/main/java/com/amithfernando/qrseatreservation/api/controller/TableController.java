@@ -1,24 +1,32 @@
 package com.amithfernando.qrseatreservation.api.controller;
 
-import com.amithfernando.qrseatreservation.api.controller.impl.TableControllerImpl;
+import com.amithfernando.qrseatreservation.api.dto.CreateTableRequest;
 import com.amithfernando.qrseatreservation.api.dto.TableDetailSummary;
 import com.amithfernando.qrseatreservation.api.model.TableDetail;
+import com.amithfernando.qrseatreservation.api.service.TableDetailService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@RestController
 @RequestMapping("/api/tables")
 @Tag(name = "Tables", description = "Table and seat management API")
-public interface TableController {
+@Slf4j
+public class TableController {
+
+    private final TableDetailService tableDetailService;
+
+    public TableController(TableDetailService tableDetailService) {
+        this.tableDetailService = tableDetailService;
+    }
+
 
     /**
      * Get all tables with their seat details
@@ -30,10 +38,15 @@ public interface TableController {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved tables")
     })
     @GetMapping
-    public ResponseEntity<List<TableDetail>> getAllTables();
+    public ResponseEntity<List<TableDetail>> getAllTables() {
+        log.info("Fetching all tables");
+        List<TableDetail> tables = tableDetailService.getAllTables();
+        return ResponseEntity.ok(tables);
+    }
+
 
     /**
-     * Get summary of all tables (total tables and seats)
+     * Get a summary of all tables (total tables and seats)
      *
      * @return Table summary
      */
@@ -42,21 +55,11 @@ public interface TableController {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved summary")
     })
     @GetMapping("/summary")
-    public ResponseEntity<TableDetailSummary> getTableSummary();
-
-    /**
-     * Create a new table with all seats marked as available
-     *
-     * @param tableDetail Table details
-     * @return Success response
-     */
-    @Operation(summary = "Create table", description = "Creates a new table with all seats marked as available")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Table created successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid table data")
-    })
-    @PostMapping
-    public ResponseEntity<Void> createTable(@RequestBody TableDetail tableDetail);
+    public ResponseEntity<TableDetailSummary> getTableSummary() {
+        log.info("Fetching table summary");
+        TableDetailSummary summary = tableDetailService.getGetTableSummary();
+        return ResponseEntity.ok(summary);
+    }
 
     /**
      * Create a new table with specified available and unavailable seats
@@ -69,13 +72,23 @@ public interface TableController {
             @ApiResponse(responseCode = "201", description = "Table created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid table data")
     })
-    @PostMapping("/custom")
-    public ResponseEntity<Void> createCustomTable(@RequestBody TableControllerImpl.CreateTableRequest request);
+    @PostMapping
+    public ResponseEntity<Void> createTable(@RequestBody CreateTableRequest request) {
+        log.info("Creating custom table: {}", request.getTableName());
+        tableDetailService.createTable(
+                request.getTableName(),
+                request.getNoOfAvailableSeats(),
+                request.getNoOfUnavailableSeats(),
+                request.getDescription()
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
 
     /**
      * Delete a table
      *
-     * @param tableDetail Table to delete
+     * @param id Table to delete
      * @return Success response
      */
     @Operation(summary = "Delete table", description = "Deletes a table and its associated seats")
@@ -83,17 +96,12 @@ public interface TableController {
             @ApiResponse(responseCode = "204", description = "Table deleted successfully"),
             @ApiResponse(responseCode = "404", description = "Table not found")
     })
-    @DeleteMapping
-    public ResponseEntity<Void> deleteTable(@RequestBody TableDetail tableDetail);
-
-    /**
-     * DTO for custom table creation
-     */
-    @lombok.Data
-    public static class CreateTableRequest {
-        private String tableName;
-        private int noOfAvailableSeats;
-        private int noOfUnavailableSeats;
-        private String description;
+    @DeleteMapping(value = "/{id}")
+    public ResponseEntity<Void> deleteTable( @PathVariable Long id) {
+        log.info("Deleting table id: {}", id);
+        tableDetailService.delete(id);
+        return ResponseEntity.noContent().build();
     }
+
+
 }
