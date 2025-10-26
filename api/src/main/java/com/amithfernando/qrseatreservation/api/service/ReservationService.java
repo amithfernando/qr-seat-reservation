@@ -76,7 +76,9 @@ public class ReservationService {
     }
 
     @Transactional
-    public void deleteReservation(ReservationDetail reservationDetail) {
+    public void deleteReservation(Long id) {
+        ReservationDetail reservationDetail = reservationDetailRepository.findById(id)
+                .orElseThrow(() -> new ReservationNotFoundException(String.valueOf(id)));
         //update ticket no
         reservationDetail.getSeatReservations().forEach(seatReservation -> {
             log.info("Deleting seat reservation: {}", seatReservation);
@@ -103,7 +105,9 @@ public class ReservationService {
     }
 
     @Transactional
-    public void setPaymentDone(ReservationDetail reservationDetail) {
+    public void setPaymentDone(Long id) {
+        ReservationDetail reservationDetail = reservationDetailRepository.findById(id)
+                .orElseThrow(() -> new ReservationNotFoundException(String.valueOf(id)));
         //update ticket no
         reservationDetail.getSeatReservations().forEach(seatReservation -> {
             log.info("Updating seat reservation to payment done: {}", seatReservation);
@@ -115,52 +119,7 @@ public class ReservationService {
         reservationDetailRepository.save(reservationDetail);
         log.info("Reservation details set payment done: {}", reservationDetail);
     }
-
-    // Find the parent reservation by a seat ticket number
-    @Transactional
-    public ReservationDetail findReservationByTicketNo(String ticketNo) {
-        if (ticketNo == null || ticketNo.isBlank()) return null;
-        for (ReservationDetail rd : reservationDetailRepository.findAllWithDetails()) {
-            if (rd.getSeatReservations() == null) continue;
-            boolean match = rd.getSeatReservations().stream()
-                    .anyMatch(sr -> sr != null && ticketNo.equals(sr.getTicketNo()));
-            if (match) return rd;
-        }
-        return null;
-    }
-
-    // Mark a seat reservation as CHECKED_IN using the scanned ticket number
-    @Transactional
-    public boolean checkInByTicketNo(String ticketNo) {
-        if (ticketNo == null || ticketNo.isBlank()) return false;
-        SeatReservation target = null;
-        for (ReservationDetail rd : reservationDetailRepository.findAllWithDetails()) {
-            if (rd.getSeatReservations() == null) continue;
-            for (SeatReservation sr : rd.getSeatReservations()) {
-                if (sr != null && ticketNo.equals(sr.getTicketNo())) {
-                    target = sr;
-                    break;
-                }
-            }
-            if (target != null) break;
-        }
-        if (target == null) {
-            log.warn("No seat reservation found for ticket {}", ticketNo);
-            return false;
-        }
-        if (target.getReservationStatus() == ReservationStatus.CHECKED_IN) {
-            log.info("Ticket {} already checked-in", ticketNo);
-            return false;
-        }
-        target.setReservationStatus(ReservationStatus.CHECKED_IN);
-        seatReservationRepository.save(target);
-        SeatDetail seatDetail = target.getSeatDetail();
-        seatDetail.setSeatStatus(SeatStatus.CHECKED_IN);
-        seatDetailRepository.save(seatDetail);
-        log.info("Checked-in ticket {}", ticketNo);
-        return true;
-    }
-
+    
     /**
      * Create a new reservation from DTO
      */

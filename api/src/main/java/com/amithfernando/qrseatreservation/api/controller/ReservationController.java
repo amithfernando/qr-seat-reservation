@@ -113,11 +113,7 @@ public class ReservationController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteReservation(@PathVariable Long id) {
         log.info("Deleting reservation id: {}", id);
-        ReservationDetail reservation = reservationService.getAllReservations().stream()
-                .filter(r -> r.getId().equals(id))
-                .findFirst()
-                .orElseThrow(() -> new com.amithfernando.qrseatreservation.api.exception.ReservationNotFoundException(String.valueOf(id)));
-        reservationService.deleteReservation(reservation);
+        reservationService.deleteReservation(id);
         return ResponseEntity.noContent().build();
     }
 
@@ -138,11 +134,7 @@ public class ReservationController {
     @PatchMapping("/{id}/mark-paid")
     public ResponseEntity<ReservationResponse> markReservationAsPaid(@PathVariable Long id) {
         log.info("Marking reservation {} as paid", id);
-        ReservationDetail reservation = reservationService.getAllReservations().stream()
-                .filter(r -> r.getId().equals(id))
-                .findFirst()
-                .orElseThrow(() -> new com.amithfernando.qrseatreservation.api.exception.ReservationNotFoundException(String.valueOf(id)));
-        reservationService.setPaymentDone(reservation);
+        reservationService.setPaymentDone(id);
         ReservationResponse response = reservationService.getReservationById(id);
         return ResponseEntity.ok(response);
     }
