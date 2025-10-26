@@ -1,18 +1,13 @@
 package com.amithfernando.qrseatreservation.api.service;
 
+import com.amithfernando.qrseatreservation.api.dto.UpdateSettingRequest;
 import com.amithfernando.qrseatreservation.api.model.Setting;
 import com.amithfernando.qrseatreservation.api.repsitory.SettingRepository;
-import jakarta.annotation.PostConstruct;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.util.Base64;
 import java.util.List;
 
 @Service
@@ -21,106 +16,107 @@ public class SettingService {
 
     private final SettingRepository settingRepository;
 
-    //seat layout
-    @Value("${settings.seatingLayout.tableSize}")
-    private  int tableSize;
-    @Value("${settings.seatingLayout.seatSize}")
-    private  int seatSize;
-    @Value("${settings.seatingLayout.noOfColumns}")
-    private  int noOfColumns;
-    //qr ticket
-    @Value("${settings.qrImage.baseImagePath}")
-    private  String baseImagePath;
-    @Value("${settings.qrImage.fontSize}")
-    private  int fontSize;
-    @Value("${settings.qrImage.qrX}")
-    private  int qrX;
-    @Value("${settings.qrImage.qrY}")
-    private  int qrY;
-    @Value("${settings.qrImage.textX}")
-    private  int textX;
-    @Value("${settings.qrImage.textY}")
-    private  int textY;
-    //tickets
-    @Value("${settings.ticket.prefix}")
-    private String ticketPrefix;
-    @Value("${settings.ticket.noOfDigits}")
-    private Integer noOfDigits;
-    @Value("${settings.ticket.maxNoOfTickets}")
-    private Integer maxNoOfTickets;
-
     public SettingService(SettingRepository settingRepository) {
         this.settingRepository = settingRepository;
     }
 
-    @PostConstruct
-    public void initializeSettings(){
-        log.info("Initializing settings");
-        List<Setting> all = settingRepository.findAll();
-        if(all.isEmpty())
-            try{
-                Setting setting = Setting.builder()
-                        .tableSize(tableSize)
-                        .seatSize(seatSize)
-                        .noOfColumns(noOfColumns)
-                        .baseImage(getBaseImage())
-                        .fontSize(fontSize)
-                        .qrX(qrX)
-                        .qrY(qrY)
-                        .textX(textX)
-                        .textY(textY)
-                        .ticketPrefix(ticketPrefix)
-                        .noOfDigits(noOfDigits)
-                        .maxNoOfTickets(maxNoOfTickets)
-                        .build();
-                settingRepository.save(setting);
-                log.info("Settings initialized: {}", setting);
-            }catch (Exception e){
-                log.error("Error initializing settings", e);
-            }
-    }
-
     public Setting getSetting() {
-        return settingRepository.findAll().get(0);
+        List<Setting> settings = settingRepository.findAll();
+        if (settings.isEmpty()) {
+            log.info("No settings found, creating default settings");
+            return createDefaultSettings();
+        }
+        return settings.get(0);
     }
 
-    private byte[] getBaseImage() throws FileNotFoundException {
-        if (baseImagePath == null || baseImagePath.isBlank()) {
-            throw new IllegalStateException("Base image path is not configured.");
+    @Transactional
+    public Setting updateSettings(UpdateSettingRequest request) {
+        List<Setting> existing = settingRepository.findAll();
+        Setting setting;
+        
+        if (!existing.isEmpty()) {
+            setting = existing.get(0);
+            log.info("Updating existing settings with ID: {}", setting.getId());
+        } else {
+            setting = new Setting();
+            log.info("Creating new settings");
         }
 
-        // 1) Try as a filesystem path
-        Path path = java.nio.file.Paths.get(baseImagePath);
-        if (Files.exists(path) && java.nio.file.Files.isRegularFile(path)) {
+        // Update fields from request
+        if (request.getEventName() != null) {
+            setting.setEventName(request.getEventName());
+        }
+        if (request.getVenue() != null) {
+            setting.setVenue(request.getVenue());
+        }
+        if (request.getTableSize() != null) {
+            setting.setTableSize(request.getTableSize());
+        }
+        if (request.getSeatSize() != null) {
+            setting.setSeatSize(request.getSeatSize());
+        }
+        if (request.getNoOfColumns() != null) {
+            setting.setNoOfColumns(request.getNoOfColumns());
+        }
+        if (request.getFontSize() != null) {
+            setting.setFontSize(request.getFontSize());
+        }
+        if (request.getQrX() != null) {
+            setting.setQrX(request.getQrX());
+        }
+        if (request.getQrY() != null) {
+            setting.setQrY(request.getQrY());
+        }
+        if (request.getTextX() != null) {
+            setting.setTextX(request.getTextX());
+        }
+        if (request.getTextY() != null) {
+            setting.setTextY(request.getTextY());
+        }
+        if (request.getTicketPrefix() != null) {
+            setting.setTicketPrefix(request.getTicketPrefix());
+        }
+        if (request.getNoOfDigits() != null) {
+            setting.setNoOfDigits(request.getNoOfDigits());
+        }
+        if (request.getMaxNoOfTickets() != null) {
+            setting.setMaxNoOfTickets(request.getMaxNoOfTickets());
+        }
+        
+        // Handle base64 encoded image
+        if (request.getBaseImageBase64() != null && !request.getBaseImageBase64().isBlank()) {
             try {
-                return java.nio.file.Files.readAllBytes(path);
-            } catch (IOException e) {
-                throw new java.io.UncheckedIOException("Failed to read base image from filesystem: " + baseImagePath, e);
+                byte[] imageBytes = Base64.getDecoder().decode(request.getBaseImageBase64());
+                setting.setBaseImage(imageBytes);
+                log.info("Base image updated, size: {} bytes", imageBytes.length);
+            } catch (IllegalArgumentException e) {
+                log.error("Failed to decode base64 image: {}", e.getMessage());
+                throw new IllegalArgumentException("Invalid base64 image data");
             }
         }
 
-        // 2) Fallback: try as a classpath resource
-        String resourcePath = baseImagePath.startsWith("/") ? baseImagePath : "/" + baseImagePath;
-        try (InputStream in = getClass().getResourceAsStream(resourcePath)) {
-            if (in != null) {
-                try {
-                    return in.readAllBytes();
-                } catch (IOException e) {
-                    throw new UncheckedIOException("Failed to read base image from classpath: " + resourcePath, e);
-                }
-            }
-        } catch (java.io.IOException e) {
-            // This catch only handles potential close() exceptions on the InputStream
-            throw new UncheckedIOException("Failed while closing classpath stream for: " + resourcePath, e);
-        }
-
-        throw new FileNotFoundException("Base image not found at path or classpath: " + baseImagePath);
+        Setting saved = settingRepository.save(setting);
+        log.info("Settings updated successfully");
+        return saved;
     }
 
-
-    public Setting save(Setting setting) {
-        settingRepository.save(setting);
-        log.info("Settings updated: {}", setting);
-        return setting;
+    private Setting createDefaultSettings() {
+        Setting setting = Setting.builder()
+                .eventName("Default Event")
+                .venue("Default Venue")
+                .tableSize(100)
+                .seatSize(24)
+                .noOfColumns(3)
+                .fontSize(14)
+                .qrX(50)
+                .qrY(50)
+                .textX(50)
+                .textY(120)
+                .ticketPrefix("T")
+                .noOfDigits(5)
+                .maxNoOfTickets(100)
+                .build();
+        
+        return settingRepository.save(setting);
     }
 }
