@@ -21,4 +21,7 @@ public interface ReservationDetailRepository extends JpaRepository<ReservationDe
            "JOIN sd.tableDetail td " +
            "WHERE td.id = :tableId")
     List<ReservationDetail> findByTableDetailId(Long tableId);
+
+    @Query("SELECT rd FROM ReservationDetail rd WHERE rd.sellerDetail.id = :sellerId")
+    List<ReservationDetail> findBySellerDetailId(Long sellerId);
 }
