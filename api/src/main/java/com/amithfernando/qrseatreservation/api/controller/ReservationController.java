@@ -1,133 +1,149 @@
 package com.amithfernando.qrseatreservation.api.controller;
 
-import com.amithfernando.qrseatreservation.api.controller.impl.ReservationControllerImpl;
+import com.amithfernando.qrseatreservation.api.dto.CreateReservationRequest;
+import com.amithfernando.qrseatreservation.api.dto.ErrorResponse;
+import com.amithfernando.qrseatreservation.api.dto.ReservationResponse;
 import com.amithfernando.qrseatreservation.api.model.ReservationDetail;
+import com.amithfernando.qrseatreservation.api.service.ReservationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@RestController
 @RequestMapping("/api/reservations")
-@Tag(name = "Reservations", description = "Reservation and ticket management API")
-public interface ReservationController {
+@Tag(name = "Reservations", description = "Reservation management API")
+@Slf4j
+public class ReservationController {
+
+    private final ReservationService reservationService;
+
+    public ReservationController(ReservationService reservationService) {
+        this.reservationService = reservationService;
+    }
 
     /**
-     * Get all reservations with details
+     * Get all reservations
      *
      * @return List of all reservations
      */
-    @Operation(summary = "Get all reservations", description = "Retrieves all reservations with their details")
+    @Operation(summary = "Get all reservations", description = "Retrieves all seat reservations")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved reservations")
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved reservations"),
+            @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @GetMapping
-    public ResponseEntity<List<ReservationDetail>> getAllReservations();
+    public ResponseEntity<List<ReservationResponse>> getAllReservations() {
+        log.info("Fetching all reservations");
+        List<ReservationResponse> reservations = reservationService.getAllReservationsAsDto();
+        return ResponseEntity.ok(reservations);
+    }
 
     /**
-     * Find reservation by ticket number
+     * Get a specific reservation by ID
      *
-     * @param ticketNo Ticket number
-     * @return Reservation detail
+     * @param id Reservation ID
+     * @return Reservation details
      */
-    @Operation(summary = "Find reservation by ticket", description = "Finds a reservation using a ticket number")
+    @Operation(summary = "Get reservation by ID", description = "Retrieves a specific reservation by its ID")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Reservation found"),
-            @ApiResponse(responseCode = "404", description = "Reservation not found")
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved reservation"),
+            @ApiResponse(responseCode = "404", description = "Reservation not found - RESERVATION_NOT_FOUND",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @GetMapping("/ticket/{ticketNo}")
-    public ResponseEntity<ReservationDetail> findReservationByTicketNo(@PathVariable String ticketNo);
+    @GetMapping("/{id}")
+    public ResponseEntity<ReservationResponse> getReservationById(@PathVariable Long id) {
+        log.info("Fetching reservation with id: {}", id);
+        ReservationResponse reservation = reservationService.getReservationById(id);
+        return ResponseEntity.ok(reservation);
+    }
 
     /**
      * Create a new reservation
      *
-     * @param reservationDetail Reservation details
-     * @return Success response
+     * @param request Reservation creation request
+     * @return Created reservation details
      */
-    @Operation(summary = "Create reservation", description = "Creates a new seat reservation")
+    @Operation(summary = "Create reservation", 
+               description = "Creates a new seat reservation with specified seats and ticket types")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Reservation created successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid reservation data")
+            @ApiResponse(responseCode = "400", description = "Invalid reservation data",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Seller or seat not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Seat already reserved - SEAT_ALREADY_RESERVED",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     @PostMapping
-    public ResponseEntity<Void> createReservation(@RequestBody ReservationDetail reservationDetail);
-
-    /**
-     * Mark reservation payment as done
-     *
-     * @param reservationDetail Reservation to mark as paid
-     * @return Success response
-     */
-    @Operation(summary = "Mark payment done", description = "Updates a reservation to mark payment as completed")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Payment marked as done"),
-            @ApiResponse(responseCode = "400", description = "Invalid reservation data")
-    })
-    @PutMapping("/payment")
-    public ResponseEntity<Void> markPaymentDone(@RequestBody ReservationDetail reservationDetail);
-
-    /**
-     * Check-in a ticket by ticket number
-     *
-     * @param ticketNo Ticket number to check-in
-     * @return Success or error response
-     */
-    @Operation(summary = "Check-in ticket", description = "Marks a ticket as checked-in using its ticket number")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Ticket checked-in successfully"),
-            @ApiResponse(responseCode = "400", description = "Ticket not found or already checked-in")
-    })
-    @PostMapping("/checkin/{ticketNo}")
-    public ResponseEntity<ReservationControllerImpl.CheckInResponse> checkInByTicketNo(@PathVariable String ticketNo);
-
-    /**
-     * Download ticket images as ZIP file
-     *
-     * @param reservationDetail Reservation detail
-     * @return ZIP file containing ticket images
-     */
-    @Operation(summary = "Download tickets", description = "Downloads all tickets for a reservation as a ZIP file")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Tickets downloaded successfully",
-                    content = @Content(mediaType = "application/zip")),
-            @ApiResponse(responseCode = "404", description = "Reservation not found"),
-            @ApiResponse(responseCode = "500", description = "Error generating tickets")
-    })
-    @PostMapping("/tickets/download")
-    public ResponseEntity<byte[]> downloadTickets(@RequestBody ReservationDetail reservationDetail);
+    public ResponseEntity<ReservationResponse> createReservation(@Valid @RequestBody CreateReservationRequest request) {
+        log.info("Creating new reservation for seller ID: {}", request.getSellerId());
+        ReservationResponse reservation = reservationService.createReservation(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(reservation);
+    }
 
     /**
      * Delete a reservation
      *
-     * @param reservationDetail Reservation to delete
+     * @param id Reservation ID to delete
      * @return Success response
      */
-    @Operation(summary = "Delete reservation", description = "Deletes a reservation and frees up the seats")
+    @Operation(summary = "Delete reservation", description = "Deletes a reservation and releases associated seats")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Reservation deleted successfully"),
-            @ApiResponse(responseCode = "404", description = "Reservation not found")
+            @ApiResponse(responseCode = "404", description = "Reservation not found - RESERVATION_NOT_FOUND",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @DeleteMapping
-    public ResponseEntity<Void> deleteReservation(@RequestBody ReservationDetail reservationDetail);
-
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteReservation(@PathVariable Long id) {
+        log.info("Deleting reservation id: {}", id);
+        ReservationDetail reservation = reservationService.getAllReservations().stream()
+                .filter(r -> r.getId().equals(id))
+                .findFirst()
+                .orElseThrow(() -> new com.amithfernando.qrseatreservation.api.exception.ReservationNotFoundException(String.valueOf(id)));
+        reservationService.deleteReservation(reservation);
+        return ResponseEntity.noContent().build();
+    }
 
     /**
-     * DTO for check-in response
+     * Mark a reservation as paid
+     *
+     * @param id Reservation ID
+     * @return Updated reservation
      */
-    @lombok.Data
-    @lombok.AllArgsConstructor
-    public static class CheckInResponse {
-        private boolean success;
-        private String message;
+    @Operation(summary = "Mark reservation as paid", description = "Updates reservation status to PAID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Reservation marked as paid successfully"),
+            @ApiResponse(responseCode = "404", description = "Reservation not found - RESERVATION_NOT_FOUND",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @PatchMapping("/{id}/mark-paid")
+    public ResponseEntity<ReservationResponse> markReservationAsPaid(@PathVariable Long id) {
+        log.info("Marking reservation {} as paid", id);
+        ReservationDetail reservation = reservationService.getAllReservations().stream()
+                .filter(r -> r.getId().equals(id))
+                .findFirst()
+                .orElseThrow(() -> new com.amithfernando.qrseatreservation.api.exception.ReservationNotFoundException(String.valueOf(id)));
+        reservationService.setPaymentDone(reservation);
+        ReservationResponse response = reservationService.getReservationById(id);
+        return ResponseEntity.ok(response);
     }
 }
