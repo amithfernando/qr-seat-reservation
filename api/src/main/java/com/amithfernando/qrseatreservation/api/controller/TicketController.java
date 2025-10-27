@@ -2,6 +2,8 @@ package com.amithfernando.qrseatreservation.api.controller;
 
 import com.amithfernando.qrseatreservation.api.dto.*;
 import com.amithfernando.qrseatreservation.api.enums.TicketStatus;
+import com.amithfernando.qrseatreservation.api.exception.ApiException;
+import com.amithfernando.qrseatreservation.api.exception.TicketNotFoundException;
 import com.amithfernando.qrseatreservation.api.model.Ticket;
 import com.amithfernando.qrseatreservation.api.service.TicketService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -130,7 +132,7 @@ public class TicketController {
         Ticket ticket = ticketService.findByTicketNo(ticketNo);
 
         if (ticket == null) {
-            throw new com.amithfernando.qrseatreservation.api.exception.TicketNotFoundException(ticketNo);
+            throw new TicketNotFoundException(ticketNo);
         }
 
         HttpHeaders headers = new HttpHeaders();
@@ -170,11 +172,7 @@ public class TicketController {
                     ));
         } catch (IOException e) {
             log.error("Failed to generate tickets", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of(
-                            "success", false,
-                            "message", "Failed to generate tickets: " + e.getMessage()
-                    ));
+            throw new ApiException("Failed to generate tickets", e);
         }
     }
 
@@ -204,11 +202,7 @@ public class TicketController {
                     ));
         } catch (IOException e) {
             log.error("Failed to generate tickets", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of(
-                            "success", false,
-                            "message", "Failed to generate tickets: " + e.getMessage()
-                    ));
+            throw new ApiException("Failed to generate tickets", e);
         }
     }
 

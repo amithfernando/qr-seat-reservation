@@ -14,4 +14,10 @@ public class ApiException extends RuntimeException{
         this.errorCode = errorCode;
         this.httpStatus = httpStatus;
     }
+
+    public ApiException(String message, Throwable cause) {
+        super(message, cause);
+        this.errorCode = "INTERNAL_SERVER_ERROR";
+        this.httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+    }
 }
