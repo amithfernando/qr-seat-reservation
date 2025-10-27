@@ -30,7 +30,6 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import jakarta.validation.constraints.*;
 import jakarta.validation.Valid;
-import org.hibernate.validator.constraints.*;
 
 /**
  * Standard error response
@@ -205,7 +204,6 @@ public class ErrorResponse implements Serializable {
 
 
   public ErrorResponse validationErrors(List<@Valid ValidationError> validationErrors) {
-    
     this.validationErrors = validationErrors;
     return this;
   }

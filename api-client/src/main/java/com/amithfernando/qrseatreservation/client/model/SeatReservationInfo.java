@@ -25,7 +25,6 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import jakarta.validation.constraints.*;
 import jakarta.validation.Valid;
-import org.hibernate.validator.constraints.*;
 
 /**
  * Seat reservation information

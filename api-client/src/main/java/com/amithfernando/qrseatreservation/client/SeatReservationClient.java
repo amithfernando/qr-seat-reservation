@@ -76,4 +76,36 @@ public class SeatReservationClient {
     public void setApiKey(String apiKey) {
         apiClient.setApiKey(apiKey);
     }
+
+    public CheckInApi getCheckinApi() {
+        return checkinApi;
+    }
+
+    public ReservationsApi getReservationApi() {
+        return reservationApi;
+    }
+
+    public SellersApi getSellerApi() {
+        return sellerApi;
+    }
+
+    public SettingsApi getSettingApi() {
+        return settingApi;
+    }
+
+    public TablesApi getTableApi() {
+        return tableApi;
+    }
+
+    public TicketsApi getTicketApi() {
+        return ticketApi;
+    }
+
+    public UsersApi getUserApi() {
+        return userApi;
+    }
+
+    public ApiClient getApiClient() {
+        return apiClient;
+    }
 }
