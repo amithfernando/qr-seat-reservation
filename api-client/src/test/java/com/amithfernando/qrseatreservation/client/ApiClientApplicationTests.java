@@ -1,4 +1,4 @@
-package com.amithfernando.qrseatreservation.apiclient;
+package com.amithfernando.qrseatreservation.client;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

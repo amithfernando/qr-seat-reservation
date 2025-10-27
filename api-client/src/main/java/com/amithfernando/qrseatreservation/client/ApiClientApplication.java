@@ -1,4 +1,4 @@
-package com.amithfernando.qrseatreservation.apiclient;
+package com.amithfernando.qrseatreservation.client;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
