@@ -119,7 +119,7 @@ public class ReservationService {
         reservationDetailRepository.save(reservationDetail);
         log.info("Reservation details set payment done: {}", reservationDetail);
     }
-    
+
     /**
      * Create a new reservation from DTO
      */
