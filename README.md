@@ -11,6 +11,7 @@ A Vaadin Flow + Spring Boot app for managing event seating: tables, reservations
 - Build and Run
 - Default Users
 - Usage Overview
+- MCP Integration
 - Security
 - Version & About
 - License
@@ -34,6 +35,10 @@ A Vaadin Flow + Spring Boot app for managing event seating: tables, reservations
   - Manual ticket lookup
   - Recent check-ins list
   - Live stats (total check-ins, available, unavailable, reserved seats)
+- **MCP Integration**
+    - AI-powered tools for reservation management
+    - Secure SSE endpoint for external AI clients
+    - Support for table queries, seller management, and reservation creation
 - Security
   - Spring Security + Vaadin
   - Login view at /login
@@ -53,6 +58,7 @@ A Vaadin Flow + Spring Boot app for managing event seating: tables, reservations
 - Java 22, Spring Boot, Spring Security
 - Spring Data JPA (Jakarta), Hibernate
 - Vaadin Flow 24
+- **Spring AI MCP Server** (Model Context Protocol)
 - Maven build, npm-managed frontend
 - ZXing (QR reading via Vaadin component)
 - MySQL (Docker recommended locally)
@@ -101,6 +107,7 @@ foo@bar:~$ docker run --name qr-seat-reservation-db -e MYSQL_ROOT_PASSWORD=root 
 Open:
 - App: http://localhost:8080/
 - Login: http://localhost:8080/login
+- MCP Endpoint: http://localhost:8080/sse (currently it is not secured)
 
 ## Configuration
 
@@ -141,6 +148,50 @@ You can change them later in the app.
 - Seating Layout — Visualize seats
 - Settings — Event metadata, ticket layout, QR/text positions, preview
 - Users — Admin-only user management
+
+## MCP Integration
+
+This application exposes a **Model Context Protocol (MCP) server** that allows AI assistants and LLM clients to interact with the reservation system programmatically.
+
+![Alt text](./screentshots/lm-studio-test-1.png)
+Create reservation with AI assistant ( LM Studio Test )
+
+
+![Alt text](./screentshots/lm-studio-test-2.png)
+Get all reservations with AI assistant ( LM Studio Test )
+
+
+### Available MCP Tools
+
+1. **TableTool** - Query available tables and seat information
+2. **SellerTool** - Manage and query seller/customer details
+3. **ReservationTool** - Create and manage seat reservations with ticket generation
+
+### MCP Endpoint
+
+- **URL**: `http://localhost:8080/mcp`
+- **Protocol**: Server-Sent Events (SSE)
+
+### Using MCP with AI Clients
+
+The MCP server can be integrated with AI assistants like:
+- Claude Desktop
+- Custom LLM applications
+- Spring AI MCP Client applications
+
+### MCP Capabilities
+
+The MCP server enables AI assistants to:
+- Query available tables and seating arrangements
+- Search for sellers/customers by name
+- Create reservations with automatic ticket generation
+- Specify full and half tickets
+- Retrieve reservation details and ticket numbers
+
+This allows natural language interactions like:
+- "Create a reservation for John at table 5 with 2 full tickets"
+- "Show me available tables"
+- "Find seller by name Sarah"
 
 ## Security
 
