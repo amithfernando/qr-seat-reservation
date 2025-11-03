@@ -36,7 +36,7 @@ public class ReservationService {
     }
 
     @Transactional
-    public void saveReservation(ReservationDetail reservationDetail) {
+    public ReservationDetail saveReservation(ReservationDetail reservationDetail) {
         //update ticket no
         reservationDetail.getSeatReservations().forEach(seatReservation -> {
             log.info("Saving seat reservation: {}", seatReservation);
@@ -52,8 +52,9 @@ public class ReservationService {
         });
         reservationDetail.setReservationStatus(ReservationStatus.PAYMENT_PENDING);
         reservationDetail.setReferenceNo(UUID.randomUUID().toString());//small unique id
-        reservationDetailRepository.save(reservationDetail);
+        ReservationDetail saved = reservationDetailRepository.save(reservationDetail);
         log.info("Reservation details created: {}", reservationDetail);
+        return saved;
     }
 
 

@@ -5,7 +5,7 @@ import com.amithfernando.qrseatreservation.core.model.SeatDetail;
 import com.amithfernando.qrseatreservation.core.model.TableDetail;
 import com.amithfernando.qrseatreservation.core.repsitory.SeatDetailRepository;
 import com.amithfernando.qrseatreservation.core.repsitory.TableDetailRepository;
-import com.amithfernando.qrseatreservation.ui.dto.TableDetailSummary;
+import com.amithfernando.qrseatreservation.core.dto.TableDetailSummary;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
