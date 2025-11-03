@@ -1,6 +1,8 @@
 package com.amithfernando.qrseatreservation.mcp;
 
+import com.amithfernando.qrseatreservation.core.dto.ReservationResponse;
 import com.amithfernando.qrseatreservation.core.dto.SellerDetailResponse;
+import com.amithfernando.qrseatreservation.core.dto.TicketResponse;
 import com.amithfernando.qrseatreservation.core.enums.TicketType;
 import com.amithfernando.qrseatreservation.core.model.ReservationDetail;
 import com.amithfernando.qrseatreservation.core.model.SeatDetail;
@@ -35,7 +37,7 @@ public class ReservationTool {
 
     @Tool(name = "addReservation",
             description = "Add seat reservation . Specify seller name, table name, list of selected seat numbers, number of full tickets and half tickets.")
-    public String createReservation(String sellerName, String tableName,List<String> seatNumbers, int numberOfFullTickets, int numberOfHalfTickets) {
+    public ReservationResponse createReservation(String sellerName, String tableName, List<String> seatNumbers, int numberOfFullTickets, int numberOfHalfTickets) {
         SellerDetail sellerDetail =sellerDetailService.findBySellerName(sellerName);
         TableDetail tableDetail=tableDetailService.findByTableName(tableName);
         List<SeatDetail> seatDetails=new ArrayList<>();
@@ -68,7 +70,20 @@ public class ReservationTool {
                 .build();
 
         ReservationDetail reservationDetail = reservationService.saveReservation(reservation);
-        return "Reservation created: reference number is " + reservationDetail.getReferenceNo();
+        List<TicketResponse> ticketResponses = reservationDetail.getSeatReservations().stream()
+                .map(table -> new TicketResponse(
+                        table.getTicketNo(),
+                        table.getSeatDetail().getSeatNo()
+                ))
+                .toList();
+
+        ReservationResponse reservationResponse = ReservationResponse.builder()
+                .seller(sellerName)
+                .tableNumber(tableName)
+                .tickets(ticketResponses)
+                .build();
+return reservationResponse;
+
     }
 
 
