@@ -14,6 +14,5 @@ import java.util.List;
 public class ReservationResponse {
 
     private String seller;
-    private String tableNumber;
     private List<TicketResponse> tickets;
 }

@@ -10,5 +10,6 @@ import lombok.NoArgsConstructor;
 public class TicketResponse {
 
     private String ticketNumber;
+    private String tableName;
     private String seatNumber;
 }

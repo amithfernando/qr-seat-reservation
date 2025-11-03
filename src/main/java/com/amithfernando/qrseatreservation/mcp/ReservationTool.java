@@ -38,11 +38,11 @@ public class ReservationTool {
     @Tool(name = "addReservation",
             description = "Add seat reservation . Specify seller name, table name, list of selected seat numbers, number of full tickets and half tickets.")
     public ReservationResponse createReservation(String sellerName, String tableName, List<String> seatNumbers, int numberOfFullTickets, int numberOfHalfTickets) {
-        SellerDetail sellerDetail =sellerDetailService.findBySellerName(sellerName);
-        TableDetail tableDetail=tableDetailService.findByTableName(tableName);
-        List<SeatDetail> seatDetails=new ArrayList<>();
-        for(String s:seatNumbers){
-            SeatDetail seatDetail=tableDetailService.findSeatDetailByTableAndSeatNumber(tableDetail,s);
+        SellerDetail sellerDetail = sellerDetailService.findBySellerName(sellerName);
+        TableDetail tableDetail = tableDetailService.findByTableName(tableName);
+        List<SeatDetail> seatDetails = new ArrayList<>();
+        for (String s : seatNumbers) {
+            SeatDetail seatDetail = tableDetailService.findSeatDetailByTableAndSeatNumber(tableDetail, s);
             seatDetails.add(seatDetail);
         }
 
@@ -73,18 +73,31 @@ public class ReservationTool {
         List<TicketResponse> ticketResponses = reservationDetail.getSeatReservations().stream()
                 .map(table -> new TicketResponse(
                         table.getTicketNo(),
+                        table.getSeatDetail().getTableDetail().getTableName(),
                         table.getSeatDetail().getSeatNo()
                 ))
                 .toList();
 
         ReservationResponse reservationResponse = ReservationResponse.builder()
                 .seller(sellerName)
-                .tableNumber(tableName)
                 .tickets(ticketResponses)
                 .build();
-return reservationResponse;
-
+        return reservationResponse;
     }
 
-
+    @Tool(name = "getAllReservations",
+            description = "Get all reservation . This will return all reservations")
+    public List<ReservationResponse> getAllReservations() {
+        return reservationService.getAllReservations().stream()
+                .map(r -> new ReservationResponse(
+                        r.getSellerDetail().getName(),
+                        r.getSeatReservations().stream()
+                                .map(seatReservation -> new TicketResponse(
+                                        seatReservation.getTicketNo(),
+                                        seatReservation.getSeatDetail().getTableDetail().getTableName(),
+                                        seatReservation.getSeatDetail().getSeatNo()
+                                ))
+                                .toList()
+                )).toList();
+    }
 }
