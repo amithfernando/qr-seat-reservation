@@ -1,6 +1,5 @@
 vaadin:
   launch-browser: true
-
 spring:
   application:
     name: qr-seat-reservation
@@ -19,6 +18,18 @@ spring:
         format_sql: true
         hbm2ddl:
           auto: update
+  ai:
+    mcp:
+      server:
+        name: my-weather-server
+        protocol: STREAMABLE
+        version: 0.0.1
+  main:
+    banner-mode: 'off'
+
+logging:
+  file:
+    name: ./logs/app.log
 
 
 

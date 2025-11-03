@@ -5,4 +5,5 @@ import com.amithfernando.qrseatreservation.core.model.TableDetail;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface SeatDetailRepository extends JpaRepository<SeatDetail, Long> {
+    SeatDetail findByTableDetailAndSeatNo(TableDetail tableDetail, String s);
 }

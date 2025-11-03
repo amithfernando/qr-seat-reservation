@@ -51,4 +51,5 @@ public class SecurityConfig extends VaadinWebSecurity {
         // Use Vaadin login view
         setLoginView(http, LoginView.class);
     }
+
 }
