@@ -21,7 +21,7 @@ spring:
   ai:
     mcp:
       server:
-        name: my-weather-server
+        name: seat-reservation-mcp-server
         protocol: STREAMABLE
         version: 0.0.1
   main:
