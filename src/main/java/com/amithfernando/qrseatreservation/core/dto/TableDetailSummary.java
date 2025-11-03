@@ -1,4 +1,4 @@
-package com.amithfernando.qrseatreservation.ui.dto;
+package com.amithfernando.qrseatreservation.core.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

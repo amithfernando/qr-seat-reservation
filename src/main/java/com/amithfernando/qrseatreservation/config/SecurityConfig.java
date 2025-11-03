@@ -6,10 +6,12 @@ import com.vaadin.flow.spring.security.VaadinWebSecurity;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 public class SecurityConfig extends VaadinWebSecurity {
@@ -41,7 +43,7 @@ public class SecurityConfig extends VaadinWebSecurity {
         // Define custom authorization rules BEFORE calling super.configure(http)
         // Define only explicit matchers BEFORE super.configure(http). Do not use anyRequest() here.
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/login", "/login/**").permitAll()
+                .requestMatchers("/login", "/login/**","/mcp","/mcp/**").permitAll()
                 .requestMatchers("/qr", "/qr/**").hasAnyRole("ADMIN", "ENTRANCE")
         );
 
@@ -49,6 +51,13 @@ public class SecurityConfig extends VaadinWebSecurity {
         super.configure(http);
 
         // Use Vaadin login view
-        setLoginView(http, LoginView.class);
+        //setLoginView(http, LoginView.class);
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .csrf(AbstractHttpConfigurer::disable);
+        return http.build();
     }
 }

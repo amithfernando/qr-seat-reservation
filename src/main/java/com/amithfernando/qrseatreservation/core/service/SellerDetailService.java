@@ -44,4 +44,8 @@ public class SellerDetailService {
         sellerDetailRepository.delete(item);
         log.info("Seller deleted: {}", item);
     }
+
+    public SellerDetail findBySellerName(String sellerName) {
+        return sellerDetailRepository.findByName(sellerName);
+    }
 }

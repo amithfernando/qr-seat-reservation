@@ -5,7 +5,7 @@ import com.amithfernando.qrseatreservation.core.model.SeatDetail;
 import com.amithfernando.qrseatreservation.core.model.TableDetail;
 import com.amithfernando.qrseatreservation.core.repsitory.SeatDetailRepository;
 import com.amithfernando.qrseatreservation.core.repsitory.TableDetailRepository;
-import com.amithfernando.qrseatreservation.ui.dto.TableDetailSummary;
+import com.amithfernando.qrseatreservation.core.dto.TableDetailSummary;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -95,5 +95,13 @@ public class TableDetailService {
 
     public void delete(TableDetail item) {
         tableDetailRepository.delete(item);
+    }
+
+    public TableDetail findByTableName(String tableName) {
+        return tableDetailRepository.findByTableName(tableName);
+    }
+
+    public SeatDetail findSeatDetailByTableAndSeatNumber(TableDetail tableDetail, String s) {
+       return seatDetailRepository.findByTableDetailAndSeatNo(tableDetail,s);
     }
 }
