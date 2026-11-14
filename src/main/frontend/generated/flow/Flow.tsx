@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2025 Vaadin Ltd.
+ * Copyright 2000-2026 Vaadin Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -346,6 +346,11 @@ function useQueuedNavigate(
     return enqueueNavigation;
 }
 
+const flowNavigation = () => {
+  // @ts-ignore
+  window.Vaadin.Flow.navigation = true;
+};
+
 function Flow() {
     const ref = useRef<HTMLOutputElement>(null);
     const navigate = useNavigate();
@@ -403,6 +408,8 @@ function Flow() {
             // When navigation is triggered by click on a link, fromAnchor is set to true
             // in order to get a server round-trip even when navigating to the same URL again
             fromAnchor.current = true;
+            // @ts-ignore
+            window.Vaadin.Flow.navigation = true;
             navigate(path);
             // Dispatch close event for overlay drawer on click navigation.
             window.dispatchEvent(new CustomEvent('close-overlay-drawer'));
@@ -463,6 +470,8 @@ function Flow() {
     }, [vaadinRouterGoEventHandler, vaadinNavigateEventHandler]);
 
     useEffect(() => {
+        // @ts-ignore
+        window.addEventListener("popstate", flowNavigation);
         window.addEventListener('click', navigateEventHandler);
         flowReact.active = true;
 
@@ -470,6 +479,8 @@ function Flow() {
             containerRef.current?.parentNode?.removeChild(containerRef.current);
             containerRef.current?.removeEventListener('flow-portal-add', addPortalEventHandler as EventListener);
             containerRef.current = undefined;
+            // @ts-ignore
+            window.removeEventListener("popstate", flowNavigation);
             window.removeEventListener('click', navigateEventHandler);
             flowReact.active = false;
         };
@@ -592,7 +603,8 @@ function Flow() {
                 }
                 return container.onBeforeEnter?.call(
                     container,
-                    { pathname: location.pathname, search: location.search },
+                  // Always add base to path as it is cleaned in getFlowRoutePath and will break a route starting with basename
+                    { pathname: basename + location.pathname, search: location.search },
                     {
                         prevent,
                         redirect,

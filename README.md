@@ -11,7 +11,6 @@ A Vaadin Flow + Spring Boot app for managing event seating: tables, reservations
 - Build and Run
 - Default Users
 - Usage Overview
-- MCP Integration
 - Security
 - Version & About
 - License
@@ -35,10 +34,12 @@ A Vaadin Flow + Spring Boot app for managing event seating: tables, reservations
   - Manual ticket lookup
   - Recent check-ins list
   - Live stats (total check-ins, available, unavailable, reserved seats)
-- **MCP Integration**
-    - AI-powered tools for reservation management
-    - Secure SSE endpoint for external AI clients
-    - Support for table queries, seller management, and reservation creation
+- Analytics and exports
+  - Reports dashboard with financial, seat, check-in, and seller metrics
+  - Seller ticket sale export
+  - Check-in list export
+  - Seller check-in list export
+  - Full ticket list export
 - Security
   - Spring Security + Vaadin
   - Login view at /login
@@ -55,35 +56,34 @@ A Vaadin Flow + Spring Boot app for managing event seating: tables, reservations
 
 ## Tech Stack
 
-- Java 22, Spring Boot, Spring Security
+- Java 17, Spring Boot, Spring Security
 - Spring Data JPA (Jakarta), Hibernate
 - Vaadin Flow 24
-- **Spring AI MCP Server** (Model Context Protocol)
 - Maven build, npm-managed frontend
 - ZXing (QR reading via Vaadin component)
 - MySQL (Docker recommended locally)
 
 ## Screenshots
 
-![Alt text](./screentshots/login.png)
+![Login page screenshot](./docs/images/screenshots/login-page.png)
 Login Page
 
-![Alt text](./screentshots/home.png)
+![Dashboard home screenshot](./docs/images/screenshots/dashboard-home.png)
 Home Page
 
-![Alt text](./screentshots/manage-table.png)
+![Table management screenshot](./docs/images/screenshots/table-management.png)
 Manage Table
 
-![Alt text](./screentshots/reservation-manage.png)
+![Reservation management screenshot](./docs/images/screenshots/reservation-management.png)
 Manage Reservation
 
-![Alt text](./screentshots/reservation-detail.png)
+![Reservation details screenshot](./docs/images/screenshots/reservation-details.png)
 Reservation Details
 
-![Alt text](./screentshots/seating-layout.png)
+![Seating layout screenshot](./docs/images/screenshots/seating-layout.png)
 Seating Layout
 
-![Alt text](./screentshots/checkin.png)
+![Check-in page screenshot](./docs/images/screenshots/check-in-page.png)
 Check-in Page
 
 ## Quick Start
@@ -107,7 +107,6 @@ foo@bar:~$ docker run --name qr-seat-reservation-db -e MYSQL_ROOT_PASSWORD=root 
 Open:
 - App: http://localhost:8080/
 - Login: http://localhost:8080/login
-- MCP Endpoint: http://localhost:8080/sse (currently it is not secured)
 
 ## Configuration
 
@@ -126,7 +125,8 @@ foo@bar:~$ ./mvnw spring-boot:run
 ```
 - Production:
 ```console
-foo@bar:~$ ./mvnw clean package java -jar target/qr-seat-reservation-*.jar
+foo@bar:~$ ./mvnw clean package
+foo@bar:~$ java -jar target/qr-seat-reservation-*.jar
 ```
 
 
@@ -149,50 +149,6 @@ You can change them later in the app.
 - Settings — Event metadata, ticket layout, QR/text positions, preview
 - Users — Admin-only user management
 
-## MCP Integration
-
-This application exposes a **Model Context Protocol (MCP) server** that allows AI assistants and LLM clients to interact with the reservation system programmatically.
-
-![Alt text](./screentshots/lm-studio-test-1.png)
-Create reservation with AI assistant ( LM Studio Test )
-
-
-![Alt text](./screentshots/lm-studio-test-2.png)
-Get all reservations with AI assistant ( LM Studio Test )
-
-
-### Available MCP Tools
-
-1. **TableTool** - Query available tables and seat information
-2. **SellerTool** - Manage and query seller/customer details
-3. **ReservationTool** - Create and manage seat reservations with ticket generation
-
-### MCP Endpoint
-
-- **URL**: `http://localhost:8080/mcp`
-- **Protocol**: Server-Sent Events (SSE)
-
-### Using MCP with AI Clients
-
-The MCP server can be integrated with AI assistants like:
-- Claude Desktop
-- Custom LLM applications
-- Spring AI MCP Client applications
-
-### MCP Capabilities
-
-The MCP server enables AI assistants to:
-- Query available tables and seating arrangements
-- Search for sellers/customers by name
-- Create reservations with automatic ticket generation
-- Specify full and half tickets
-- Retrieve reservation details and ticket numbers
-
-This allows natural language interactions like:
-- "Create a reservation for John at table 5 with 2 full tickets"
-- "Show me available tables"
-- "Find seller by name Sarah"
-
 ## Security
 
 - Login via Vaadin Login Overlay
@@ -203,7 +159,7 @@ This allows natural language interactions like:
 
 The drawer footer shows:
 - Version (Implementation-Version)
-- Developer info and GitHub project link
+- Project maintainers and GitHub project link
 
 ## License
 
@@ -213,7 +169,7 @@ This project includes open source components licensed under the Apache License, 
 
 Vaadin is a registered trademark of Vaadin Ltd. This project is not affiliated with Vaadin Ltd. Vaadin components used by this project are available under the Apache License 2.0 (unless otherwise noted by their respective packages).
 
-Copyright (c) 2025 Amith Fernando
+Copyright (c) 2025 QR Seat Reservation Contributors
 
 Note: Vaadin Pro components (if used) require a separate commercial license.
 

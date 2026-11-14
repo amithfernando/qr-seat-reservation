@@ -1,13 +1,34 @@
 vaadin:
-  launch-browser: true
+  launch-browser: false
+  frontend:
+    hotdeploy: false
+
 spring:
   application:
     name: qr-seat-reservation
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
   datasource:
     url: ${DB_URL:jdbc:mysql://localhost:3306/qr-seat-reservation?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC}
     username: ${DB_USER:user}
     password: ${DB_PWD:password}
     driver-class-name: com.mysql.cj.jdbc.Driver
+    # HikariCP connection pooling (optimized for 1.9GB RAM)
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      # Keep below MySQL wait_timeout (28800s default) so HikariCP retires
+      # connections before MySQL closes them, preventing stale-connection crashes
+      max-lifetime: 600000
+      keepalive-time: 60000
+      connection-test-query: SELECT 1
+      pool-name: HikariPool-QR
+      auto-commit: true
+      leak-detection-threshold: 60000
   jpa:
     hibernate:
       ddl-auto: update
@@ -15,21 +36,28 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
-        format_sql: true
+        format_sql: false
         hbm2ddl:
           auto: update
-  ai:
-    mcp:
-      server:
-        name: seat-reservation-mcp-server
-        protocol: STREAMABLE
-        version: 0.0.1
-  main:
-    banner-mode: 'off'
-
-logging:
-  file:
-    name: ./logs/app.log
+        jdbc:
+          batch_size: 50
+          fetch_size: 50
+          time_zone: UTC
+        order_inserts: true
+        order_updates: true
+        # Enable lazy loading without transaction
+        enable_lazy_load_no_trans: false
+        # Bytecode enhancement for lazy loading
+        bytecode:
+          use_reflection_optimizer: true
+        # Disable second-level cache (not configured)
+        cache:
+          use_second_level_cache: false
+          use_query_cache: false
+        # Statement caching
+        generate_statistics: false
+    # Open session in view - keep false to prevent lazy loading issues
+    open-in-view: false
 
 
 
@@ -39,12 +67,13 @@ settings:
     noOfDigits: 6
     maxNoOfTickets : 100
   qrImage :
-    baseImagePath : "imgs/baseTicket.jpeg"
+    baseImagePath : "imgs/base-ticket-template.png"
     fontSize : 28
-    qrX : 450
-    qrY : 20
-    textX : 450
-    textY: 320
+    qrBorder : 1
+    qrX : 950
+    qrY : 820
+    textX : 950
+    textY: 1120
   seatingLayout:
     tableSize : 100
     seatSize : 20
