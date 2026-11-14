@@ -13,6 +13,10 @@ function getClients() {
 function sendEvent(eventName, data) {
     getClients().forEach((client) => client.sendEventMessage(ROOT_NODE_ID, eventName, data));
 }
+// In the future could be replaced with RegExp.escape()
+function escapeRegExp(pattern) {
+    return pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 /**
  * Client API for flow UI operations.
  */
@@ -24,6 +28,11 @@ export class Flow {
         this.isActive = false;
         this.baseRegex = /^\//;
         this.navigation = '';
+        // Set window.name early so @PreserveOnRefresh can use it to identify the browser tab
+        // Only set if not already set to preserve any existing value
+        if (!window.name) {
+            window.name = `v-${Math.random()}`;
+        }
         flowRoot.$ = flowRoot.$ || [];
         this.config = config || {};
         // TB checks for the existence of window.Vaadin.Flow in order
@@ -39,7 +48,7 @@ export class Flow {
         const elm = document.head.querySelector('base');
         this.baseRegex = new RegExp(`^${
         // IE11 does not support document.baseURI
-        (document.baseURI || (elm && elm.href) || '/').replace(/^https?:\/\/[^/]+/i, '')}`);
+        escapeRegExp((document.baseURI || (elm && elm.href) || '/').replace(/^https?:\/\/[^/]+/i, ''))}`);
         this.appShellTitle = document.title;
         // Put a vaadin-connection-indicator in the dom
         this.addConnectionIndicator();
@@ -80,12 +89,8 @@ export class Flow {
         // Use capture phase to detect prevented / stopped events.
         document.addEventListener('click', (_e) => {
             if (_e.target) {
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore
-                if (_e.target.hasAttribute('router-link')) {
+                if (_e.composedPath().some((node) => node instanceof HTMLElement && node.hasAttribute('router-link'))) {
                     this.navigation = 'link';
-                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                    // @ts-ignore
                 }
                 else if (_e.composedPath().some((node) => node.nodeName === 'A')) {
                     this.navigation = 'client';
@@ -148,7 +153,7 @@ export class Flow {
             sendEvent('ui-leave-navigation', { route: this.getFlowRoutePath(ctx), query: this.getFlowRouteQuery(ctx) });
         });
     }
-    // Send the remote call to `JavaScriptBootstrapUI` to render the flow
+    // Send the remote call to `UI` to render the flow
     // route specified by the context
     async flowNavigate(ctx, cmd) {
         if (this.response) {
@@ -192,7 +197,10 @@ export class Flow {
         }
     }
     getFlowRoutePath(context) {
-        return decodeURIComponent(context.pathname).replace(this.baseRegex, '');
+        // Don't decode the pathname here - let the server handle decoding
+        // individual path segments. This preserves the distinction between
+        // literal slashes (path separators) and encoded slashes (%2F, data).
+        return context.pathname.replace(this.baseRegex, '');
     }
     getFlowRouteQuery(context) {
         return (context.search && context.search.substring(1)) || '';

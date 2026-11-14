@@ -1,0 +1,5 @@
+app-db/
+app-db_BK/
+app-db-FN/
+backup_*.sql
+*.pem*

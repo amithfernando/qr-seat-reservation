@@ -1,10 +1,18 @@
-version: '3.8'
 services:
   db:
     image: mysql:8
     command: >
       --character-set-server=utf8mb4
       --collation-server=utf8mb4_unicode_ci
+      --innodb_buffer_pool_size=128M
+      --innodb_log_file_size=32M
+      --innodb_flush_log_at_trx_commit=2
+      --innodb_flush_method=O_DIRECT
+      --performance_schema=OFF
+      --table_open_cache=400
+      --table_definition_cache=400
+      --temptable_max_ram=64M
+      --max_connections=30
     environment:
       MYSQL_DATABASE: 'qr-seat-reservation'
       MYSQL_USER: 'user'
@@ -13,7 +21,6 @@ services:
       TZ: 'UTC'
     volumes:
       - ./app-db:/var/lib/mysql
-
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -ppassword || exit 1"]
       interval: 20s
@@ -23,23 +30,39 @@ services:
     ports:
       - "3306:3306"
     restart: unless-stopped
+    # Memory-tuned for a 2 GB host (performance_schema off, small caches)
+    mem_limit: 500m
+    memswap_limit: 800m
+    logging: &default-logging
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    image: amithfernando/qr-seat-reservation:latest
+    image: qr-seat-reservation/app:1.0.1
     environment:
-      DB_URL: jdbc:mysql://db:3306/qr-seat-reservation?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_URL: jdbc:mysql://db:3306/qr-seat-reservation?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&cachePrepStmts=true&prepStmtCacheSize=250&prepStmtCacheSqlLimit=2048&useServerPrepStmts=true&rewriteBatchedStatements=true
       DB_USER: user
       DB_PWD: password
-      JAVA_OPTS: "-Xms256m -Xmx512m"
+      # JDK_JAVA_OPTIONS is read by the java launcher itself (JAVA_OPTS was silently ignored)
+      JDK_JAVA_OPTIONS: "-Xms96m -Xmx384m -XX:+UseSerialGC -XX:MaxMetaspaceSize=160m -XX:ReservedCodeCacheSize=64m -Xss512k -XX:+UseStringDeduplication -XX:+ExitOnOutOfMemoryError -Dvaadin.productionMode=true"
+      SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: "2"
+      VAADIN_PRODUCTION_MODE: "true"
     depends_on:
       db:
         condition: service_healthy
     ports:
       - "8080:8080"
     restart: unless-stopped
+    # Heap 384m + metaspace 160m + code cache 64m + threads/native; container cap leaves headroom
+    mem_limit: 800m
+    memswap_limit: 1100m
+    cpus: 1.5
+    logging: *default-logging
 
   nginx:
     image: nginx:stable
@@ -53,6 +76,8 @@ services:
     depends_on:
       - app
     restart: unless-stopped
+    mem_limit: 64m
+    logging: *default-logging
 
 volumes:
   app-db:
